@@ -1,0 +1,27 @@
+{% load static from staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href=" {% static 'common/bootstrap/css/bootstrap.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'common/jquery/jquery-3.3.1.js' %}"></script>
+    <script type="text/javascript" src="{% static 'common/bootstrap/js/bootstrap.min.js' %}"></script>
+    <title>List</title>
+</head>
+<body>
+<div class="container">
+    <h2>增加</h2>
+    {% for item in form %}
+        {{ item }}
+    {% endfor %}
+
+</div>
+
+<script>
+    //checkbox all opt
+
+</script>
+</body>
+</html>

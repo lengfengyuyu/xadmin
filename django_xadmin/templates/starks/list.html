@@ -1,0 +1,57 @@
+{% load static from staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href=" {% static 'common/bootstrap/css/bootstrap.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'common/jquery/jquery-3.3.1.js' %}"></script>
+    <script type="text/javascript" src="{% static 'common/bootstrap/js/bootstrap.min.js' %}"></script>
+    <title>List</title>
+</head>
+<body>
+<div class="container">
+    <h2>{{ st }}</h2>
+    <div class="row pull-right">
+        <a href="{{ add_url }}"><button class="btn btn-primary">增加</button></a>
+    </div>
+    <div class="row">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    {% for h in headerList %}
+                        <th>{{ h }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+
+            {% for item in newDataList %}
+                <tr>
+                    {% for itemCol in item %}
+                        <td>{{ itemCol }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    //checkbox all opt
+$(".cb-all").click(function () {
+    //$(".cb-item").select;
+    if($(this).prop("checked")){
+        $(".cb-item").prop("checked",true);
+
+    }else{
+        $(".cb-item").prop("checked",false);
+    }
+});
+</script>
+</body>
+</html>
