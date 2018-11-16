@@ -131,7 +131,11 @@ class StarkModelAdmin(object):
         return render(request, "starks/list.html", locals())
 
     def deltee_view(self, request, id):
-        return HttpResponse("del")
+        back_url = self.get_which_url('list')
+        if request.method == "POST":
+            self.model.objects.filter(nid=id).delete()
+            return redirect(back_url)
+        return render(request,"starks/del.html",locals())
 
     def add_view(self, request):
         InnerModelFrom = self.get_default_model_from()

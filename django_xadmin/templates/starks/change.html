@@ -14,22 +14,7 @@
 <body>
 <div class="container">
     <h2>编辑</h2>
-    <div class="row col-md-offset-3 col-md-6">
-        <form action="" method="POST" novalidate>
-            {% for item in form %}
-                {% csrf_token %}
-                <div>
-                    <label for=" ">{{ item.label }}</label>
-                    {{ item }}<span class="error pull-right">{{ item.errors.0 }}</span>
-                </div>
-            {% endfor %}
-
-            <div class="row">
-                <button type="submit" class="btn btn-primary  pull-right" style="margin-top: 30px">提交</button>
-            </div>
-
-        </form>
-    </div>
+    {% include 'starks/base-form.html' %}
 </div>
 
 <script>
