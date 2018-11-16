@@ -1,0 +1,40 @@
+{% load static from staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href=" {% static 'common/bootstrap/css/bootstrap.min.css' %} "/>
+    <link rel="stylesheet" href=" {% static 'starks/col.css' %} "/>
+    <script type="text/javascript" src="{% static 'common/jquery/jquery-3.3.1.js' %}"></script>
+    <script type="text/javascript" src="{% static 'common/bootstrap/js/bootstrap.min.js' %}"></script>
+    <title>List</title>
+</head>
+<body>
+<div class="container">
+    <h2>编辑</h2>
+    <div class="row col-md-offset-3 col-md-6">
+        <form action="" method="POST" novalidate>
+            {% for item in form %}
+                {% csrf_token %}
+                <div>
+                    <label for=" ">{{ item.label }}</label>
+                    {{ item }}<span class="error pull-right">{{ item.errors.0 }}</span>
+                </div>
+            {% endfor %}
+
+            <div class="row">
+                <button type="submit" class="btn btn-primary  pull-right" style="margin-top: 30px">提交</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    //checkbox all opt
+
+</script>
+</body>
+</html>

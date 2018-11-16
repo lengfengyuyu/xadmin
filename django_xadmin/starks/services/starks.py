@@ -18,7 +18,7 @@ class StarkModelAdmin(object):
         model_name = self.model._meta.model_name
         label_name = self.model._meta.app_label
         urlpatterns = []
-        urlpatterns.append(path('list/', self.list_view, name="{}_{}_list".format(label_name, model_name)))
+        urlpatterns.append(path('', self.list_view, name="{}_{}_list".format(label_name, model_name)))
         urlpatterns.append(path('add/', self.add_view, name="{}_{}_add".format(label_name, model_name)))
         urlpatterns.append(
             path('<int:id>/change/', self.change_view, name="{}_{}_change".format(label_name, model_name)))
@@ -146,7 +146,17 @@ class StarkModelAdmin(object):
         return render(request, "starks/add.html", locals())
 
     def change_view(self, request, id):
-        return HttpResponse("change")
+        InnerModelFrom = self.get_default_model_from()
+        obj = self.model.objects.filter(nid=id).first()
+        if request.method == "POST":
+            form = InnerModelFrom(request.POST,instance=obj)
+            if form.is_valid():
+                form.save()
+                return redirect(self.get_which_url('list'))
+            return render(request, "starks/list.html", locals())
+
+        form = InnerModelFrom(instance=obj)
+        return render(request, "starks/change.html", locals())
 
 
 class StarkSite(object):
