@@ -1,5 +1,6 @@
+import copy
 class Pagination(object):
-    def __init__(self,data_num,current_page,url_prefix,per_page=10,max_show=3):
+    def __init__(self,data_num,current_page,url_prefix,params,per_page=10,max_show=3):
         self.data_num = data_num
         self.url_prefix = url_prefix
         self.per_page = per_page
@@ -35,6 +36,7 @@ class Pagination(object):
             self.page_start = self.current_page - self.half_show
             self.page_end = self.current_page + self.half_show
 
+        self.params = copy.deepcopy(params)
     @property
     def start(self):
         return (self.current_page-1)*self.per_page
@@ -52,12 +54,12 @@ class Pagination(object):
             h.append('<li><a href="{}?page={}">&laquo;</a></li>'.format(self.url_prefix,self.current_page-1))
 
         for i in range(self.page_start,self.page_end+1):
+            self.params['page']=i
             if i == self.current_page:
-                print("in",i,self.page_start,self.page_end)
                 tmp = '<li class="active"><a href="{0}?page={1}">{1}</a></li>'.format(self.url_prefix,self.current_page)
 
             else:
-                tmp = '<li><a href="{0}?page={1}">{1}</a></li>'.format(self.url_prefix,i)
+                tmp = '<li><a href="{0}?{1}">{2}</a></li>'.format(self.url_prefix,self.params.urlencode(),i)
 
             h.append(tmp)
 

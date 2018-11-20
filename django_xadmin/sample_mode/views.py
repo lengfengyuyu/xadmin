@@ -12,9 +12,7 @@ def page_show(request):
     base_url = request.path
     from starks.utils.page import Pagination
 
-    pagination = Pagination(all_count,current_page,base_url,max_show=11)
-    print(pagination.start)
-    print(pagination.end)
+    pagination = Pagination(all_count,current_page,base_url,request.GET, max_show=11)
 
     publish_list = Publish.objects.all()[pagination.start:pagination.end]
     page_html = pagination.page_to_html()
