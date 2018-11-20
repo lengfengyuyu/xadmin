@@ -18,49 +18,69 @@
             <button class="btn btn-primary">增加</button>
         </a>
     </div>
+    <!--搜索框-->
     <div class="row">
-        <table class="table table-bordered table-striped">
-            <thead>
-            <tr>
-                {% for h in headerList %}
-                    <th>{{ h }}</th>
-                {% endfor %}
-            </tr>
-            </thead>
-            <tbody>
+        {% if vsl.stark_model_admin.search_fields %}
+            <div class="col-lg-3 col-md-3">
+                <form action="" method="POST" novalidate>
+                    <div class="input-group" style="margin-bottom: 20px">
 
-            {% for item in newDataList %}
+                        {% csrf_token %}
+                        <input type="text" class="form-control" name="search_field" placeholder="Search for...">
+                        <span class="input-group-btn">
+        <button class="btn btn-default" type="submit">搜索</button>
+      </span>
+
+
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+        <!--表单-->
+
+        <div class="row">
+            <table class="table table-bordered table-striped">
+                <thead>
                 <tr>
-                    {% for itemCol in item %}
-                        <td>{{ itemCol }}</td>
+                    {% for h in vs.get_table_header %}
+                        <th>{{ h }}</th>
                     {% endfor %}
                 </tr>
-            {% endfor %}
+                </thead>
+                <tbody>
 
-            </tbody>
-        </table>
+                {% for item in vsl.get_table_body %}
+                    <tr>
+                        {% for itemCol in item %}
+                            <td>{{ itemCol }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+        <div class="row pull-right">
+            <nav aria-label="Page navigation">
+                <ul class="pagination ">
+                    {{ vsl.get_page|safe }}
+                </ul>
+            </nav>
+        </div>
+
     </div>
-    <div class="row pull-right">
-        <nav aria-label="Page navigation" >
-            <ul class="pagination ">
-                {{ page_html|safe }}
-            </ul>
-        </nav>
-    </div>
 
-</div>
+    <script>
+        //checkbox all opt
+        $(".cb-all").click(function () {
+            //$(".cb-item").select;
+            if ($(this).prop("checked")) {
+                $(".cb-item").prop("checked", true);
 
-<script>
-    //checkbox all opt
-    $(".cb-all").click(function () {
-        //$(".cb-item").select;
-        if ($(this).prop("checked")) {
-            $(".cb-item").prop("checked", true);
-
-        } else {
-            $(".cb-item").prop("checked", false);
-        }
-    });
-</script>
+            } else {
+                $(".cb-item").prop("checked", false);
+            }
+        });
+    </script>
 </body>
 </html>

@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.forms import ModelForm, widgets as wid
 from starks.utils.page import Pagination
-
+from django.db.models import Q
 
 class ViewShowLit(object):
 
@@ -13,29 +13,34 @@ class ViewShowLit(object):
         self.stark_model_admin = stark_model_admin
         self.dataList = dataList
         self.request = request
-        current_page = request.GET.get("page",1)
-        self.page = Pagination(dataList.count(),current_page,request.path,request.GET,max_show=9)
+        if self.dataList:
+            current_page = request.GET.get("page",1)
+            self.page = Pagination(dataList.count(),current_page,request.path,request.GET,max_show=9)
 
-        self.page_data = self.dataList[self.page.start:self.page.end]
+            self.page_data = self.dataList[self.page.start:self.page.end]
 
     def get_page(self):
-        return self.page.page_to_html()
+        if self.dataList:
+            return self.page.page_to_html()
+        return None
 
     def get_table_body(self):
         newDataList = []
-        # 用于分页的数据，不是之前的所有数据了
-        for item in self.page_data:
-            temp = []
-            for x in self.stark_model_admin.inner_display_list():
-                if isinstance(x, str):
-                    if x in self.stark_model_admin.list_display_links:
-                        temp.append(self.stark_model_admin.item_to_link(item, getattr(item, x)))
-                        continue
-                    temp.append(getattr(item, x))
-                elif callable(x):
-                    temp.append(x(self.stark_model_admin, obj=item))
+        if self.dataList:
 
-            newDataList.append(temp)
+            # 用于分页的数据，不是之前的所有数据了
+            for item in self.page_data:
+                temp = []
+                for x in self.stark_model_admin.inner_display_list():
+                    if isinstance(x, str):
+                        if x in self.stark_model_admin.list_display_links:
+                            temp.append(self.stark_model_admin.item_to_link(item, getattr(item, x)))
+                            continue
+                        temp.append(getattr(item, x))
+                    elif callable(x):
+                        temp.append(x(self.stark_model_admin, obj=item))
+
+                newDataList.append(temp)
         return newDataList
 
     def get_table_header(self):
@@ -58,6 +63,7 @@ class ViewShowLit(object):
 class StarkModelAdmin(object):
     list_display = ['__str__']
     list_display_links = []
+    search_fields =[]
 
     def __init__(self, model, admin_site):
         self.model = model
@@ -144,18 +150,25 @@ class StarkModelAdmin(object):
 
         return StarkModelForm
 
+    def get_sql_filter(self,request):
+        user_sf = request.POST.get("search_field")
+        sql_q = Q()
+        sql_q.connector = "or"
+        if user_sf:
+            for sf in self.search_fields:
+                sql_q.children.append((sf + "__contains", user_sf))
+
+        return sql_q
     # ----------视图部分----------
     def list_view(self, request):
-        vsl = ViewShowLit(self,self.model.objects.all(),request)
+        #过滤
+        if request.method == "POST":
+            dataList = self.model.objects.all().filter(self.get_sql_filter(request))
+        else:
+            dataList = self.model.objects.all()
 
-        # 表内容
-        newDataList = vsl.get_table_body()
-
-        # 表头
-        headerList = vsl.get_table_header()
-
-        # 分页器
-        page_html = vsl.get_page()
+        vsl = ViewShowLit(self,dataList,request)
+        print(vsl.stark_model_admin.search_fields)
         add_url = self.get_which_url('add')
         return render(request, "starks/list.html", locals())
 
