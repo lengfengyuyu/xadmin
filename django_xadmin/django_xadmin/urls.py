@@ -16,7 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from starks.services import starks
+from sample_mode.views import page_show
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('starks/', starks.starkSite.urls),
+    path('', page_show,name='page_show'),
 ]
