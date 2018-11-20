@@ -4,6 +4,55 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.forms import ModelForm, widgets as wid
+from starks.utils.page import Pagination
+
+
+class ViewShowLit(object):
+
+    def __init__(self,stark_model_admin,dataList,request):
+        self.stark_model_admin = stark_model_admin
+        self.dataList = dataList
+        self.request = request
+        current_page = request.GET.get("page",1)
+        self.page = Pagination(dataList.count(),current_page,request.path,request.GET,max_show=9)
+
+        self.page_data = self.dataList[self.page.start:self.page.end]
+
+    def get_page(self):
+        return self.page.page_to_html()
+
+    def get_table_body(self):
+        newDataList = []
+        # 用于分页的数据，不是之前的所有数据了
+        for item in self.page_data:
+            temp = []
+            for x in self.stark_model_admin.inner_display_list():
+                if isinstance(x, str):
+                    if x in self.stark_model_admin.list_display_links:
+                        temp.append(self.stark_model_admin.item_to_link(item, getattr(item, x)))
+                        continue
+                    temp.append(getattr(item, x))
+                elif callable(x):
+                    temp.append(x(self.stark_model_admin, obj=item))
+
+            newDataList.append(temp)
+        return newDataList
+
+    def get_table_header(self):
+        headerList = []
+        for x in self.stark_model_admin.inner_display_list():
+            if isinstance(x, str):
+                if x == "__str__":
+                    headerList.append(self.stark_model_admin.model._meta.model_name.upper())
+                else:
+                    headerList.append(x)
+                    # 中文列名这么做
+                    # headerList.append(self.model._meta.getfield(x).verbose_name)
+            elif callable(x):
+                if self.stark_model_admin.list_display_links and x.__name__ == "edit":
+                    continue
+                headerList.append(x(self.stark_model_admin, header=True))
+        return headerList
 
 
 class StarkModelAdmin(object):
@@ -97,36 +146,16 @@ class StarkModelAdmin(object):
 
     # ----------视图部分----------
     def list_view(self, request):
-        st = self.model._meta.model_name
+        vsl = ViewShowLit(self,self.model.objects.all(),request)
 
-        dataList = self.model.objects.all()
         # 表内容
-        newDataList = []
-        for item in dataList:
-            temp = []
-            for x in self.inner_display_list():
-                if isinstance(x, str):
-                    if x in self.list_display_links:
-                        temp.append(self.item_to_link(item, getattr(item, x)))
-                        continue
-                    temp.append(getattr(item, x))
-                elif callable(x):
-                    temp.append(x(self, obj=item))
-            newDataList.append(temp)
+        newDataList = vsl.get_table_body()
+
         # 表头
-        headerList = []
-        for x in self.inner_display_list():
-            if isinstance(x, str):
-                if x == "__str__":
-                    headerList.append(self.model._meta.model_name.upper())
-                else:
-                    headerList.append(x)
-                    # 中文列名这么做
-                    # headerList.append(self.model._meta.getfield(x).verbose_name)
-            elif callable(x):
-                if self.list_display_links and x.__name__ == "edit":
-                    continue
-                headerList.append(x(self, header=True))
+        headerList = vsl.get_table_header()
+
+        # 分页器
+        page_html = vsl.get_page()
         add_url = self.get_which_url('add')
         return render(request, "starks/list.html", locals())
 

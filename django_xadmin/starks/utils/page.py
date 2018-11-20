@@ -21,6 +21,10 @@ class Pagination(object):
         elif self.current_page > self.page_num:
             self.current_page = self.page_num
 
+        # 确定max_show不比数据多
+        if self.page_num < max_show:
+            self.max_show = self.page_num
+
         # 算出一半
         self.half_show = max_show // 2
 

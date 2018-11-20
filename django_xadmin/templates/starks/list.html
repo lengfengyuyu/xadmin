@@ -14,16 +14,18 @@
 <div class="container">
     <h2>{{ st }}</h2>
     <div class="row pull-right">
-        <a href="{{ add_url }}"><button class="btn btn-primary">增加</button></a>
+        <a href="{{ add_url }}">
+            <button class="btn btn-primary">增加</button>
+        </a>
     </div>
     <div class="row">
         <table class="table table-bordered table-striped">
             <thead>
-                <tr>
-                    {% for h in headerList %}
-                        <th>{{ h }}</th>
-                    {% endfor %}
-                </tr>
+            <tr>
+                {% for h in headerList %}
+                    <th>{{ h }}</th>
+                {% endfor %}
+            </tr>
             </thead>
             <tbody>
 
@@ -38,20 +40,27 @@
             </tbody>
         </table>
     </div>
+    <div class="row pull-right">
+        <nav aria-label="Page navigation" >
+            <ul class="pagination ">
+                {{ page_html|safe }}
+            </ul>
+        </nav>
+    </div>
 
 </div>
 
 <script>
     //checkbox all opt
-$(".cb-all").click(function () {
-    //$(".cb-item").select;
-    if($(this).prop("checked")){
-        $(".cb-item").prop("checked",true);
+    $(".cb-all").click(function () {
+        //$(".cb-item").select;
+        if ($(this).prop("checked")) {
+            $(".cb-item").prop("checked", true);
 
-    }else{
-        $(".cb-item").prop("checked",false);
-    }
-});
+        } else {
+            $(".cb-item").prop("checked", false);
+        }
+    });
 </script>
 </body>
 </html>
