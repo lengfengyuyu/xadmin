@@ -13,12 +13,19 @@ class ViewShowLit(object):
         self.stark_model_admin = stark_model_admin
         self.dataList = dataList
         self.request = request
+        self.actions = stark_model_admin.actions
         if self.dataList:
             current_page = request.GET.get("page",1)
             self.page = Pagination(dataList.count(),current_page,request.path,request.GET,max_show=9)
 
             self.page_data = self.dataList[self.page.start:self.page.end]
 
+    def get_actions(self):
+        temp =[]
+        temp.append({"name":"--------","desc":"--------"})
+        for a in self.actions:
+            temp.append({"name":a.__name__,"desc":a.desc})
+        return temp
     def get_page(self):
         if self.dataList:
             return self.page.page_to_html()
@@ -64,6 +71,7 @@ class StarkModelAdmin(object):
     list_display = ['__str__']
     list_display_links = []
     search_fields =[]
+    actions = []
 
     def __init__(self, model, admin_site):
         self.model = model
@@ -122,7 +130,7 @@ class StarkModelAdmin(object):
     def choice(self, obj=None, header=False):
         if header:
             return mark_safe('<input type="checkbox" class="cb-all" />')
-        return mark_safe('<input type="checkbox" class="cb-item" />')
+        return mark_safe('<input type="checkbox" class="cb-item" name="cb-cho" value={}>'.format(obj.pk))
 
     def inner_display_list(self):
         tl = []
@@ -163,12 +171,18 @@ class StarkModelAdmin(object):
     def list_view(self, request):
         #过滤
         if request.method == "POST":
-            dataList = self.model.objects.all().filter(self.get_sql_filter(request))
+            # 区分POST进行什么操作
+            if request.POST.get("search_field"):
+                dataList = self.model.objects.all().filter(self.get_sql_filter(request))
+            elif request.POST.get("action"):
+                act_func = getattr(self,request.POST.get("action"))
+                qs = self.model.objects.filter(pk__in=request.POST.getlist("cb-cho"))
+                act_func(request,qs)
+                dataList = self.model.objects.all()
         else:
             dataList = self.model.objects.all()
 
         vsl = ViewShowLit(self,dataList,request)
-        print(vsl.stark_model_admin.search_fields)
         add_url = self.get_which_url('add')
         return render(request, "starks/list.html", locals())
 
