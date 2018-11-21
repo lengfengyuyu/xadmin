@@ -34,7 +34,6 @@ class Book(models.Model):
     price = models.DecimalField(max_digits=5,decimal_places=2)
 
     authors = models.ManyToManyField(to="Author")
-
     publish = models.ForeignKey(to="Publish",to_field="nid",on_delete=models.CASCADE)
 
     def __str__(self):

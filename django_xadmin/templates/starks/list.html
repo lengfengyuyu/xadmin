@@ -9,89 +9,112 @@
     <script type="text/javascript" src="{% static 'common/jquery/jquery-3.3.1.js' %}"></script>
     <script type="text/javascript" src="{% static 'common/bootstrap/js/bootstrap.min.js' %}"></script>
     <title>List</title>
+    <style>
+        .filter a{
+            text-decoration: none;
+            color:gray;
+
+        }
+        .a-active{
+            color:red!important;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <h2>{{ st }}</h2>
-    <div class="row pull-right">
-        <a href="{{ add_url }}">
-            <button class="btn btn-primary">增加</button>
-        </a>
-    </div>
-    <!--搜索框-->
     <div class="row">
-        {% if vsl.stark_model_admin.search_fields %}
-            <div class="col-lg-3 col-md-3">
-                <form action="" method="POST" novalidate>
-                    <div class="input-group" style="margin-bottom: 20px">
+        <div class="col-md-9">
+            <div class="row pull-right">
+                <a href="{{ add_url }}">
+                    <button class="btn btn-primary">增加</button>
+                </a>
+            </div>
+            <!--搜索框-->
+            <div class="row">
+                {% if vsl.stark_model_admin.search_fields %}
+                    <div class="col-lg-3 col-md-3">
+                        <form action="" method="POST" novalidate>
+                            <div class="input-group" style="margin-bottom: 20px">
 
-                        {% csrf_token %}
-                        <input type="text" class="form-control" name="search_field" placeholder="Search for...">
-                        <span class="input-group-btn">
+                                {% csrf_token %}
+                                <input type="text" class="form-control" name="search_field" placeholder="Search for...">
+                                <span class="input-group-btn">
         <button class="btn btn-default" type="submit">搜索</button>
       </span>
 
 
+                            </div>
+                        </form>
                     </div>
-                </form>
+                {% endif %}
+                <!--表单-->
             </div>
-        {% endif %}
-        <!--表单-->
-    </div>
 
-    <div class="row">
-        <form action="" method="POST" novalidate>
             <div class="row">
-                <div class="col-lg-3 col-md-3">
-                    <div class="input-group" style="margin-bottom: 20px">
+                <form action="" method="POST" novalidate>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-3">
+                            <div class="input-group" style="margin-bottom: 20px">
 
-                        {% csrf_token %}
-                        <select name="action" id="" class="form-control">
-                            {% for opt in vsl.get_actions %}
-                            <option value="{{ opt.name }}">{{ opt.desc }}</option>
+                                {% csrf_token %}
+                                <select name="action" id="" class="form-control">
+                                    {% for opt in vsl.get_actions %}
+                                        <option value="{{ opt.name }}">{{ opt.desc }}</option>
 
-                            {% endfor %}
-                        </select>
-                        <span class="input-group-btn">
+                                    {% endfor %}
+                                </select>
+                                <span class="input-group-btn">
         <button class="btn btn-danger" type="submit">批量操作</button>
       </span>
 
 
+                            </div>
+
+                        </div>
                     </div>
+                    <!--数据列表-->
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                        <tr>
+                            {% for h in vsl.get_table_header %}
+                                <th>{{ h }}</th>
+                            {% endfor %}
+                        </tr>
+                        </thead>
+                        <tbody>
 
-                </div>
-            </div>
-            <!--数据列表-->
-            <table class="table table-bordered table-striped">
-                <thead>
-                <tr>
-                    {% for h in vs.get_table_header %}
-                        <th>{{ h }}</th>
-                    {% endfor %}
-                </tr>
-                </thead>
-                <tbody>
-
-                {% for item in vsl.get_table_body %}
-                    <tr>
-                        {% for itemCol in item %}
-                            <td>{{ itemCol }}</td>
+                        {% for item in vsl.get_table_body %}
+                            <tr>
+                                {% for itemCol in item %}
+                                    <td>{{ itemCol }}</td>
+                                {% endfor %}
+                            </tr>
                         {% endfor %}
-                    </tr>
-                {% endfor %}
 
-                </tbody>
-            </table>
-        </form>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+            <div class="row pull-right">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination ">
+                        {{ vsl.get_page|safe }}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-3 filter">
+            <h4>过滤器</h4>
+            {% for tag,item in vsl.get_filter_tag.items %}
+                <div class="well">
+                <p><b>{{ tag|safe }}</b></p>
+                {% for i in item %}
+                    {{ i|safe }}
+                <p>{% endfor %}</p>
+                </div>
+            {% endfor %}
+        </div>
     </div>
-    <div class="row pull-right">
-        <nav aria-label="Page navigation">
-            <ul class="pagination ">
-                {{ vsl.get_page|safe }}
-            </ul>
-        </nav>
-    </div>
-
 </div>
 
 <script>

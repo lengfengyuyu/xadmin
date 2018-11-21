@@ -4,8 +4,10 @@ from .models import *
 
 class BookConfig(StarkModelAdmin):
 
-    list_display = ['title','price','pdate']
+    #注意处理多对多
+    list_display = ['title','price','pdate','publish','authors']
     search_fields = ['title','price']
+    list_filter = [ 'authors','publish']
 
     def ppprint(self,request,queryset):
         print(queryset)

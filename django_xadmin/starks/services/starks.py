@@ -6,7 +6,8 @@ from django.urls import reverse
 from django.forms import ModelForm, widgets as wid
 from starks.utils.page import Pagination
 from django.db.models import Q
-
+from django.db.models.fields.related import ManyToManyField
+import copy
 class ViewShowLit(object):
 
     def __init__(self,stark_model_admin,dataList,request):
@@ -19,6 +20,32 @@ class ViewShowLit(object):
             self.page = Pagination(dataList.count(),current_page,request.path,request.GET,max_show=9)
 
             self.page_data = self.dataList[self.page.start:self.page.end]
+    def get_filter_tag(self):
+        filter_list = {}
+        for field in self.stark_model_admin.list_filter:
+            params = copy.deepcopy(self.request.GET)
+            cid = int(self.request.GET.get(field,0))
+            # 先取关系
+            field_obj = self.stark_model_admin.model._meta.get_field(field)
+            ## for django 2.1
+            dl = field_obj.related_model.objects.all()
+            temp = []
+            # 处理all标签
+            if params.get(field):
+                del params[field]
+                temp.append('<a href="?{}">All</a>'.format(params.urlencode()))
+            else:
+                temp.append('<a href="#">All</a>')
+            # 处理数据标签
+            for i in dl:
+                params[field]=i.pk
+                if cid == i.pk:
+                    a_tag = '<a class="a-active" href="?{}">{}</a>'.format(params.urlencode(), i)
+                else:
+                    a_tag = '<a href="?{}">{}</a>'.format(params.urlencode(),i)
+                temp.append(a_tag)
+            filter_list[field] = temp
+        return filter_list
 
     def get_actions(self):
         temp =[]
@@ -40,11 +67,23 @@ class ViewShowLit(object):
                 temp = []
                 for x in self.stark_model_admin.inner_display_list():
                     if isinstance(x, str):
-                        if x in self.stark_model_admin.list_display_links:
-                            temp.append(self.stark_model_admin.item_to_link(item, getattr(item, x)))
-                            continue
-                        temp.append(getattr(item, x))
-                    elif callable(x):
+                        # 多对多字段的显示，特殊处理
+                        mmf_obj = self.stark_model_admin.model._meta.get_field(x)
+                        if isinstance(mmf_obj,ManyToManyField):
+                            mmf_obj_list = getattr(item,x).all()
+                            t_res =[]
+                            for res in mmf_obj_list:
+                                t_res.append(str(res))
+
+                            temp.append(",".join(t_res))
+                        else:
+                            # 默认点击的item,要做特殊处理
+                            if x in self.stark_model_admin.list_display_links:
+                                temp.append(self.stark_model_admin.item_to_link(item, getattr(item, x)))
+                                continue
+                            temp.append(getattr(item, x))
+
+                    elif callable(x): # 处理方法
                         temp.append(x(self.stark_model_admin, obj=item))
 
                 newDataList.append(temp)
@@ -72,6 +111,7 @@ class StarkModelAdmin(object):
     list_display_links = []
     search_fields =[]
     actions = []
+    list_filter = []
 
     def __init__(self, model, admin_site):
         self.model = model
@@ -167,6 +207,14 @@ class StarkModelAdmin(object):
                 sql_q.children.append((sf + "__contains", user_sf))
 
         return sql_q
+
+    def get_filter_filter(self, request):
+        filter_q = Q()
+        for filter_field, val in request.GET.items():
+            #去掉page=xxx部分，否则报错
+            if filter_field in self.list_filter:
+                filter_q.children.append((filter_field, val))
+        return  filter_q
     # ----------视图部分----------
     def list_view(self, request):
         #过滤
@@ -180,7 +228,10 @@ class StarkModelAdmin(object):
                 act_func(request,qs)
                 dataList = self.model.objects.all()
         else:
-            dataList = self.model.objects.all()
+            # 获取filter
+            filter_q = self.get_filter_filter(request)
+            #
+            dataList = self.model.objects.filter(filter_q)
 
         vsl = ViewShowLit(self,dataList,request)
         add_url = self.get_which_url('add')
